@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  webapp:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: ctf_webapp
+    restart: unless-stopped
+    volumes:
+      - log_data:/opt/admin/logs
+    networks:
+      - ctf_network
+    environment:
+      - NODE_ENV=production
+    expose:
+      - "3075"
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: ctf_nginx
+    restart: unless-stopped
+    ports:
+      - "3075:3075"
+    volumes:
+      - log_data:/opt/admin/logs
+    networks:
+      - ctf_network
+    depends_on:
+      - webapp
+
+  ssh:
+    image: alpine:3.19
+    container_name: ctf_ssh
+    command: >
+      sh -c "apk add --no-cache openssh &&
+             adduser -D -s /bin/sh analyst &&
+             echo 'analyst:blue_team_rocks' | chpasswd &&
+             mkdir -p /etc/ssh &&
+             ssh-keygen -A &&
+             echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config &&
+             echo 'PermitRootLogin no' >> /etc/ssh/sshd_config &&
+             echo 'Port 2222' >> /etc/ssh/sshd_config &&
+             /usr/sbin/sshd -D"
+    ports:
+      - "2275:2222"
+    volumes:
+      - log_data:/opt/admin/logs:ro
+    networks:
+      - ctf_network
+
+  log-injector:
+    image: python:3.11-alpine
+    container_name: ctf_log_injector
+    volumes:
+      - log_data:/opt/admin/logs
+      - ./scripts:/scripts
+    command: sh -c "sleep 8 && python3 /scripts/inject_logs.py && echo 'Logs injected successfully'"
+    networks:
+      - ctf_network
+    depends_on:
+      - nginx
+
+volumes:
+  log_data:
+    driver: local
+
+networks:
+  ctf_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
