@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — Feedback System</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      min-height: 100vh;
+    }
+    header {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 16px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 { color: #58a6ff; font-size: 1.1rem; letter-spacing: 1px; }
+    .badge {
+      background: #238636;
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .main { padding: 30px; }
+    .welcome-box {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .welcome-box h2 { color: #3fb950; margin-bottom: 8px; }
+    .welcome-box p  { color: #8b949e; font-size: 0.9rem; }
+
+    /* === XSS Reflection Container === */
+    /* Phase 3 flag: SCENARIO75{xss-payload} */
+    .xss-payload {
+      background: #1c1c2e;
+      border: 1px solid #6e40c9;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+      min-height: 50px;
+    }
+    .xss-payload-label {
+      color: #8b949e;
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-card .num   { font-size: 2rem; color: #58a6ff; font-weight: bold; }
+    .stat-card .label { font-size: 0.8rem; color: #8b949e; margin-top: 5px; }
+
+    .feedback-table {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .feedback-table h3 { color: #c9d1d9; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; color: #8b949e; font-size: 0.8rem; padding: 8px 12px; border-bottom: 1px solid #30363d; }
+    td { padding: 10px 12px; font-size: 0.9rem; border-bottom: 1px solid #21262d; }
+    tr:last-child td { border-bottom: none; }
+
+    /* Final flag section */
+    .flag-box {
+      background: #1c1c2e;
+      border: 2px solid #f85149;
+      border-radius: 10px;
+      padding: 24px;
+      text-align: center;
+    }
+    .flag-box h3   { color: #f85149; font-size: 1rem; margin-bottom: 10px; }
+    .flag-value {
+      font-family: monospace;
+      font-size: 1.1rem;
+      color: #ffd700;
+      background: #0d1117;
+      padding: 12px 20px;
+      border-radius: 6px;
+      letter-spacing: 1px;
+      display: inline-block;
+      margin-top: 8px;
+    }
+
+    .logout-btn {
+      background: #f85149;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 18px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>🛡️ Admin Feedback Dashboard</h1>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span class="badge">● AUTHENTICATED</span>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<div class="main">
+  <div class="welcome-box">
+    <h2>Welcome back, Administrator</h2>
+    <p>You have successfully authenticated. Session token: <span id="sess-tok" style="font-family:monospace;color:#58a6ff;"></span></p>
+  </div>
+
+  <!-- XSS Reflection Container — Phase 3: SCENARIO75{xss-payload} -->
+  <div class="xss-payload-label">⚠ Feedback Preview (Last Submission)</div>
+  <div class="xss-payload" id="xss-payload-container">
+    <span style="color:#8b949e;font-size:0.85rem;">No recent feedback payload to display.</span>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card"><div class="num">14</div><div class="label">Total Submissions</div></div>
+    <div class="stat-card"><div class="num">3</div><div class="label">Pending Review</div></div>
+    <div class="stat-card"><div class="num">1</div><div class="label">Flagged Entries</div></div>
+    <div class="stat-card"><div class="num">99.8%</div><div class="label">Uptime</div></div>
+  </div>
+
+  <div class="feedback-table">
+    <h3>📋 Recent Feedback Log</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Sender</th><th>Message Preview</th><th>Timestamp</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>john.doe@corp.local</td><td>The new UI is clean and responsive...</td><td>2025-06-01 09:12:03</td><td style="color:#3fb950;">Reviewed</td></tr>
+        <tr><td>2</td><td>jane.smith@corp.local</td><td>Login page takes too long to load...</td><td>2025-06-01 11:44:18</td><td style="color:#e3b341;">Pending</td></tr>
+        <tr><td>3</td><td>unknown@external.io</td><td>&lt;svg onload=alert(1)&gt;</td><td>2025-06-02 18:50:22</td><td style="color:#f85149;">⚠ Flagged</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Final CTF Flag — Phase 3: SCENARIO75{RED_C00k13_MFA_Byp4ss_0wn3d} -->
+  <div class="flag-box">
+    <h3>🚩 SYSTEM FLAG — RESTRICTED ACCESS</h3>
+    <p style="color:#8b949e;font-size:0.85rem;margin-bottom:10px;">
+      This flag is only accessible to authenticated administrators.<br>
+      If you obtained this via session replay — you have successfully completed the Red Team challenge.
+    </p>
+    <div class="flag-value">SCENARIO75{RED_C00k13_MFA_Byp4ss_0wn3d}</div>
+  </div>
+</div>
+
+<script>
+  // Show current session token
+  const cookies = document.cookie.split(';').reduce((acc, c) => {
+    const [k,v] = c.trim().split('=');
+    acc[k]=v; return acc;
+  }, {});
+  const tok = cookies['pre_mfa_session'] || 'N/A';
+  document.getElementById('sess-tok').textContent = tok;
+
+  // XSS Reflection: render last payload from URL hash or sessionStorage
+  // This is the intentional XSS sink — Phase 3: SCENARIO75{xss-payload}
+  const urlParams = new URLSearchParams(window.location.search);
+  const payload = urlParams.get('preview') || sessionStorage.getItem('last_payload');
+  if (payload) {
+    // Intentionally unsafe innerHTML — the XSS sink
+    document.getElementById('xss-payload-container').innerHTML = payload;
+  }
+
+  function logout() {
+    document.cookie = 'pre_mfa_session=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+    window.location.href = '/';
+  }
+</script>
+</body>
+</html>

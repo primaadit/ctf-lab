@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Feedback System</title>
+  <!--
+    ██████╗  ██████╗ ██████╗  ██████╗ ████████╗███████╗   ████████╗██╗  ██╗████████╗
+    ██╔══██╗██╔═══██╗██╔══██╗██╔═══██╗╚══██╔══╝██╔════╝   ╚══██╔══╝╚██╗██╔╝╚══██╔══╝
+    ██████╔╝██║   ██║██████╔╝██║   ██║   ██║   ███████╗      ██║    ╚███╔╝    ██║
+    ██╔══██╗██║   ██║██╔══██╗██║   ██║   ██║   ╚════██║      ██║    ██╔██╗    ██║
+    ██║  ██║╚██████╔╝██████╔╝╚██████╔╝   ██║   ███████║      ██║   ██╔╝ ██╗   ██║
+    ╚═╝  ╚═╝ ╚═════╝ ╚═════╝  ╚═════╝   ╚═╝   ╚══════╝      ╚═╝   ╚═╝  ╚═╝   ╚═╝
+    Hint: Have you checked /robots.txt yet? There might be something disallowed...
+  -->
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .logo h1 {
+      font-size: 1.4rem;
+      color: #58a6ff;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .logo p {
+      color: #8b949e;
+      font-size: 0.85rem;
+      margin-top: 5px;
+    }
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 30px;
+    }
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #30363d;
+      margin-bottom: 25px;
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      cursor: pointer;
+      color: #8b949e;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .tab.active {
+      color: #58a6ff;
+      border-bottom: 2px solid #58a6ff;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+      color: #8b949e;
+    }
+    input, textarea {
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: #c9d1d9;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 16px;
+    }
+    input:focus, textarea:focus { border-color: #58a6ff; }
+    textarea { resize: vertical; min-height: 80px; }
+    button {
+      width: 100%;
+      background: #238636;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 11px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: #2ea043; }
+    .msg {
+      margin-top: 14px;
+      font-size: 0.85rem;
+      padding: 10px;
+      border-radius: 6px;
+      display: none;
+    }
+    .msg.success { background: #0d2818; color: #3fb950; border: 1px solid #238636; }
+    .msg.error   { background: #2d1717; color: #f85149; border: 1px solid #f85149; }
+
+    /* MFA Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 30px;
+      width: 340px;
+      text-align: center;
+    }
+    .modal h2 { color: #58a6ff; margin-bottom: 10px; }
+    .modal p  { color: #8b949e; font-size: 0.85rem; margin-bottom: 20px; }
+    .mfa-hint { color: #3fb950; font-size: 0.8rem; margin-bottom: 15px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">
+    <h1>🔒 Admin Feedback System</h1>
+    <p>Internal Corporate Portal — Authorized Users Only</p>
+  </div>
+  <div class="card">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('login')">Login</div>
+      <div class="tab" onclick="switchTab('feedback')">Submit Feedback</div>
+    </div>
+
+    <!-- Login Tab -->
+    <div id="login" class="tab-content active">
+      <label>Username</label>
+      <input type="text" id="login-user" placeholder="username" />
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="password" />
+      <button onclick="doLogin()">Sign In</button>
+      <div class="msg" id="login-msg"></div>
+    </div>
+
+    <!-- Feedback Tab -->
+    <div id="feedback" class="tab-content">
+      <label>Your Name</label>
+      <input type="text" id="fb-name" placeholder="John Doe" />
+      <label>Message</label>
+      <textarea id="fb-msg" placeholder="Enter your feedback..."></textarea>
+      <button onclick="submitFeedback()">Submit Feedback</button>
+      <div class="msg" id="fb-msg-res"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MFA Modal -->
+<div class="modal-overlay" id="mfa-modal">
+  <div class="modal">
+    <h2>🔐 MFA Required</h2>
+    <p>A 6-digit code has been sent to your registered device.</p>
+    <div class="mfa-hint">Demo: any 6-digit code works (e.g. 123456)</div>
+    <input type="text" id="mfa-code" maxlength="6" placeholder="000000" style="text-align:center;letter-spacing:8px;font-size:1.4rem;" />
+    <button onclick="verifyMfa()">Verify</button>
+    <div class="msg" id="mfa-msg"></div>
+  </div>
+</div>
+
+<script>
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['login','feedback'][i] === tab);
+  });
+  document.querySelectorAll('.tab-content').forEach(c => {
+    c.classList.toggle('active', c.id === tab);
+  });
+}
+
+function showMsg(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'msg ' + type;
+  el.style.display = 'block';
+}
+
+async function doLogin() {
+  const u = document.getElementById('login-user').value;
+  const p = document.getElementById('login-pass').value;
+  try {
+    const r = await fetch('/api/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({username: u, password: p})
+    });
+    const d = await r.json();
+    if (d.status === 'mfa_required') {
+      document.getElementById('mfa-modal').classList.add('show');
+    } else {
+      showMsg('login-msg', d.error || 'Login failed', 'error');
+    }
+  } catch(e) {
+    showMsg('login-msg', 'Network error', 'error');
+  }
+}
+
+async function verifyMfa() {
+  const code = document.getElementById('mfa-code').value;
+  try {
+    const r = await fetch('/api/verify-mfa', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({mfa_code: code})
+    });
+    const d = await r.json();
+    if (d.status === 'ok') {
+      window.location.href = d.redirect;
+    } else {
+      showMsg('mfa-msg', d.error || 'Invalid code', 'error');
+    }
+  } catch(e) {
+    showMsg('mfa-msg', 'Network error', 'error');
+  }
+}
+
+async function submitFeedback() {
+  const name = document.getElementById('fb-name').value;
+  const message = document.getElementById('fb-msg').value;
+  try {
+    const r = await fetch('/api/feedback', {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-www-form-urlencoded'},
+      body: `name=${encodeURIComponent(name)}&message=${encodeURIComponent(message)}`
+    });
+    const d = await r.json();
+    if (d.status === 'ok') {
+      showMsg('fb-msg-res', 'Feedback submitted!', 'success');
+    } else {
+      showMsg('fb-msg-res', d.error || 'Error submitting', 'error');
+    }
+  } catch(e) {
+    showMsg('fb-msg-res', 'Network error', 'error');
+  }
+}
+</script>
+</body>
+</html>
