@@ -1,3 +1,19 @@
+/**
+ * ============================================================
+ *  SecOpsTrack — Red vs Blue CTF Lab
+ *  by SalimLabs
+ * ============================================================
+ *  Author  : Prima Praditya (Abu Hamzah Salim)
+ *  GitHub  : github.com/primaadit/SecOpsTrack
+ *  LinkedIn: linkedin.com/in/primaadit
+ *  License : MIT — Free to use for educational purposes only
+ * ------------------------------------------------------------
+ *  ⚠  This application is INTENTIONALLY VULNERABLE by design.
+ *     Deploy ONLY in isolated, offline lab environments.
+ *     Never expose to public networks.
+ * ============================================================
+ */
+
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const path = require('path');
@@ -59,6 +75,7 @@ app.use((req, res, next) => {
 // Routes
 app.use('/', require('./routes/main'));
 app.use('/api', require('./routes/api'));
+app.use('/mfa', require('./routes/mfa'));
 app.use('/dashboard', require('./routes/dashboard'));
 
 app.listen(PORT, '0.0.0.0', () => {
